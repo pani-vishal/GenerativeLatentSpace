@@ -13,13 +13,14 @@ from torch import nn
 from torch import distributions
 
 import sys
+from copy import deepcopy
 
 sys.path.append('./')
 from Models.base import LinBlock
 
 
 class RealNVP(nn.Module):
-    def __init__(self, tfm_layers=5, latent_dim=2, internal_dim=256):
+    def __init__(self, tfm_layers=8, latent_dim=2, internal_dim=256):
         super(RealNVP, self).__init__()
 
         self.tfm_layers = tfm_layers
@@ -33,12 +34,14 @@ class RealNVP(nn.Module):
 
         self.prior = distributions.MultivariateNormal(torch.zeros(latent_dim), torch.eye(latent_dim))
 
-        self.block_scale = nn.Sequential(LinBlock(latent_dim, internal_dim), LinBlock(internal_dim, internal_dim),
+        self.block_scale = nn.Sequential(nn.Linear(latent_dim, internal_dim), nn.LeakyReLU(),
+                                         nn.Linear(internal_dim, internal_dim), nn.LeakyReLU(),
                                          nn.Linear(internal_dim, latent_dim), nn.Tanh())
-        self.block_trans = nn.Sequential(LinBlock(latent_dim, internal_dim), LinBlock(internal_dim, internal_dim),
+        self.block_trans = nn.Sequential(nn.Linear(latent_dim, internal_dim), nn.LeakyReLU(),
+                                         nn.Linear(internal_dim, internal_dim), nn.LeakyReLU(),
                                          nn.Linear(internal_dim, latent_dim))
-        self.net_trans = nn.ModuleList([self.block_trans for _ in range(tfm_layers)])
-        self.net_scale = nn.ModuleList([self.block_scale for _ in range(tfm_layers)])
+        self.net_trans = nn.ModuleList([deepcopy(self.block_trans) for _ in range(tfm_layers)])
+        self.net_scale = nn.ModuleList([deepcopy(self.block_scale) for _ in range(tfm_layers)])
 
     def forward(self, x):
         return self.log_prob(x)
