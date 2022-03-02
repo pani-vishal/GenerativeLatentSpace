@@ -66,6 +66,7 @@ class RealNVP(nn.Module):
 
     def to_image(self, z, flag_condition=False):
         x = z
+        log_det_j = torch.zeros(x.shape[0]).to(self.device)
         if flag_condition:
             diag_j = torch.ones(x.shape).to(self.device)
         for i in range(len(self.net_scale)):
@@ -75,6 +76,8 @@ class RealNVP(nn.Module):
             scale_exp = torch.exp(scale)
             trans = self.net_trans[i](x_masked) * (1 - mask)
             x = x_masked + (1 - mask) * (x * scale_exp + trans)
+            print(scale.shape)
+            log_det_j += torch.einsum("ijk->i", scale)
 
             if flag_condition:
                 diag_j *= scale_exp
@@ -85,7 +88,7 @@ class RealNVP(nn.Module):
         if flag_condition:
             return x, cond_num
         else:
-            return x
+            return x, log_det_j
 
     def log_prob(self, x):
         z, log_p = self.to_latent(x)
@@ -93,7 +96,7 @@ class RealNVP(nn.Module):
 
     def sample(self, num_samples, flag_condition=False):
         z = self.prior.sample((num_samples, 1)).to(self.device)
-        x = self.to_image(z, flag_condition=flag_condition)
+        x, _ = self.to_image(z, flag_condition=flag_condition)
         return x
 
     def print_summary(self):
