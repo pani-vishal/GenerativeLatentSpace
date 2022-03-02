@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     device = pt.device('cuda') if pt.cuda.is_available() else pt.device('cpu')
 
-    # Need to manually set bc anyways.
+    # Need to manually set bc anyway.
     X_dim = [1,28,28]
     
     # Discretization of geodesic curve
