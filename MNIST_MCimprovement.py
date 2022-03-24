@@ -108,7 +108,6 @@ if __name__ == "__main__":
         relative_improvement = (error / straight_len).item()
         relative_list.append(relative_improvement)
 
-        
     point_pairs = np.stack(np.array(point_pairs), axis=0)
 
     timetaken = time.time() - start_time

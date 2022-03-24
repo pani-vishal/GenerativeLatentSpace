@@ -2,7 +2,7 @@
 # Bezier and Bspline curve definitions, including a trainable curve with 
 # variable parameters.
 # ------------------------------------------------------------------------------
-
+import torch
 import torch as pt
 import numpy as np
 
@@ -80,7 +80,7 @@ def CubicBSpline (control_points, knot_vector=None):
         # Make sure it's a tensor on the right device and has the correct shape.
         knot_vector = pt.as_tensor(knot_vector).view(1, -1).to(device)
 
-    def basis_func (knots, k, t):
+    def basis_func(knots, k, t):
         """
         Returns the basis function at control point i and of degree k and evaluated at t, a torch Tensor of shape [N,1].
         If this method is too slow, I can write down the whole formula for cubic Bsplines explicitly and implement it that way.
@@ -160,11 +160,13 @@ class trainableCurve (nn.Module):
         
         # Without ParameterList the entries within a Parameter are not moved to device.
         # Initialize first 2 points on a straight line, rest will be set later
-        self.new_nodes = nn.ParameterList([nn.Parameter(self.start + (i+1)/3 * (self.end - self.start)) for i in range(max_nodes)])
+        # self.new_nodes = nn.ParameterList([nn.Parameter(self.start + (i+1)/max_nodes * (self.end - self.start) - torch.randn(start.shape)) for i in range(max_nodes)])
+        self.new_nodes = nn.ParameterList(
+            [nn.Parameter(self.start + (i + 1) / max_nodes * (self.end - self.start)) for i in range(max_nodes)])
         
         # Keep as list such that moving to device and adding nodes work as expected.
         # CubicBsplines require 2 new nodes, whereas Bezier can start with 1 node. 
-        self.points = [self.start, self.new_nodes[0], self.new_nodes[1], self.end]
+        self.points = [self.start, self.new_nodes[1], self.new_nodes[-2], self.end]
         self.nodecount = 2
         self.knot_vector = [0,0,0,0,1,1,1,1]
         

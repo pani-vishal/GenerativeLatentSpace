@@ -12,7 +12,7 @@ sys.path.append('./')
 from Geometry.curves import trainableCurve, BezierCurve
 
 
-def trainGeodesic (bc0, bc1, N, metricSpace, M_batch_size=4, max_epochs=1000, val_epoch=10, verbose=2):
+def trainGeodesic(bc0, bc1, N, metricSpace, M_batch_size=4, max_epochs=1000, val_epoch=10, verbose=2):
     """
     Finds a shorter curve from bc0 to bc1 (attention, this may not be symmetric) in the metricSpace. 
 
@@ -56,7 +56,7 @@ def trainGeodesic (bc0, bc1, N, metricSpace, M_batch_size=4, max_epochs=1000, va
     straight_measure = metricSpace.curve_measure(g, dg, M_batch_size=M_batch_size)
 
     # Let tolerance depend on the length of straight line.
-    length_tol = best_length/200.
+    length_tol = best_length / 200.
 
     print(f"Straight curve length: {best_length:.3f}")
     print(f"Straight curve measure: {straight_measure:.3f}")
@@ -170,4 +170,5 @@ def runGammaEpoch(gamma, optimizer, scheduler, t_val, metricSpace, M_batch_size=
         scheduler.step()
 
     return length.item()
-    
+
+###############################################################
